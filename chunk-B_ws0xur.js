@@ -1,0 +1,1 @@
+import{Dt as fr,K as V,N as Os,O as Nn,t as A}from"./chunk-CcdShgaC.js";function i(o){return o instanceof fr?o.error?.mensagem??`Não foi possível conectar ao servidor.`:`Algo deu errado. Tente novamente.`}function d(){return o=>o.pipe(V(e=>({status:`sucesso`,dados:e})),Os({status:`carregando`}),Nn(e=>A({status:`erro`,mensagem:i(e)})))}export{i as n,d as t};

@@ -1,0 +1,1 @@
+var e={disponivel:`Disponível`,reservado:`Reservado`,vendido:`Vendido`};var t={novo:`Novo`,"em-contato":`Em contato`,proposta:`Proposta`,fechado:`Fechado`,perdido:`Perdido`};var r={site:`Site`,whatsapp:`WhatsApp`,telefone:`Telefone`,loja:`Na loja`};function a(o){return`${o.marca} ${o.modelo} ${o.versao}`.trim()}export{t as i,e as n,r,a as t};
