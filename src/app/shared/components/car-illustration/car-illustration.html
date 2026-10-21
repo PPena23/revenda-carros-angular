@@ -1,0 +1,162 @@
+<svg
+  [attr.viewBox]="viewBox()"
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  @let t = tons();
+  @let s = estudio();
+  <defs>
+    <linearGradient [attr.id]="uid + '-fundo'" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" [attr.stop-color]="s.topo" />
+      <stop offset="0.66" [attr.stop-color]="s.meio" />
+      <stop offset="1" [attr.stop-color]="s.chao" />
+    </linearGradient>
+    <radialGradient [attr.id]="uid + '-spot'" cx="0.5" cy="0" r="0.75">
+      <stop offset="0" stop-color="#fff" [attr.stop-opacity]="s.spot" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient [attr.id]="uid + '-piso'" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff" [attr.stop-opacity]="s.reflexo" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient [attr.id]="uid + '-corpo'" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" [attr.stop-color]="t.claro" />
+      <stop offset="0.36" [attr.stop-color]="t.base" />
+      <stop offset="0.62" [attr.stop-color]="t.medio" />
+      <stop offset="1" [attr.stop-color]="t.sombra" />
+    </linearGradient>
+    <linearGradient [attr.id]="uid + '-reflexo'" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.28" stop-color="#fff" [attr.stop-opacity]="t.brilho * 0.55" />
+      <stop offset="0.4" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.72" stop-color="#fff" [attr.stop-opacity]="t.brilho * 0.25" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient [attr.id]="uid + '-vidro'" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3C4756" />
+      <stop offset="1" stop-color="#0B0E13" />
+    </linearGradient>
+    <linearGradient [attr.id]="uid + '-vidro-reflexo'" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0.25" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.42" stop-color="#fff" stop-opacity="0.16" />
+      <stop offset="0.56" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient [attr.id]="uid + '-aro'" cx="0.4" cy="0.35" r="0.8">
+      <stop offset="0" stop-color="#F6F7F9" />
+      <stop offset="1" stop-color="#868D96" />
+    </radialGradient>
+    <filter [attr.id]="uid + '-desfoque'" x="-20%" y="-200%" width="140%" height="500%">
+      <feGaussianBlur stdDeviation="7" />
+    </filter>
+    <filter [attr.id]="uid + '-brilho'" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.4" result="b" />
+      <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Estúdio: parede, spot de luz e reflexo no piso -->
+  <rect x="-200" y="-100" width="1040" height="540" [attr.fill]="url('fundo')" />
+  <ellipse cx="320" cy="0" rx="420" ry="250" [attr.fill]="url('spot')" />
+  <ellipse cx="320" cy="300" rx="340" ry="44" [attr.fill]="url('piso')" />
+
+  @switch (angulo()) {
+    @case ('frente') {
+      @let f = frontal();
+      <ellipse [attr.cx]="f.sombra.cx" [attr.cy]="f.sombra.cy" [attr.rx]="f.sombra.rx" [attr.ry]="f.sombra.ry"
+        fill="#000" [attr.opacity]="s.sombra" [attr.filter]="url('desfoque')" />
+      @for (p of f.pneus; track $index) {
+        <rect [attr.x]="p.x" [attr.y]="p.y" [attr.width]="p.w" [attr.height]="p.h" rx="10" fill="#111215" />
+      }
+      <path [attr.d]="f.cabine" [attr.fill]="url('corpo')" />
+      <path [attr.d]="f.vidro" [attr.fill]="url('vidro')" />
+      <path [attr.d]="f.vidro" [attr.fill]="url('vidro-reflexo')" />
+      <path [attr.d]="f.retrovisorEsq" [attr.fill]="t.medio" />
+      <path [attr.d]="f.retrovisorEsq" [attr.fill]="t.medio" transform="translate(640 0) scale(-1 1)" />
+      <path [attr.d]="f.carroceria" [attr.fill]="url('corpo')" />
+      <path [attr.d]="f.carroceria" [attr.fill]="url('reflexo')" />
+      <path [attr.d]="f.capo" fill="#fff" opacity="0.08" />
+      <path [attr.d]="f.farolEsq" fill="#EEF3FA" [attr.filter]="url('brilho')" />
+      <path [attr.d]="f.farolEsq" fill="#EEF3FA" [attr.filter]="url('brilho')" transform="translate(640 0) scale(-1 1)" />
+      <rect [attr.x]="f.grade.x" [attr.y]="f.grade.y" [attr.width]="f.grade.w" [attr.height]="f.grade.h" rx="10" fill="#0E0F12" />
+      @for (i of [1, 2, 3]; track i) {
+        <line [attr.x1]="f.grade.x + 10" [attr.x2]="f.grade.x + f.grade.w - 10"
+          [attr.y1]="f.grade.y + (f.grade.h / 4) * i" [attr.y2]="f.grade.y + (f.grade.h / 4) * i"
+          stroke="#2A2C31" stroke-width="2" />
+      }
+      <rect [attr.x]="f.entrada.x" [attr.y]="f.entrada.y" [attr.width]="f.entrada.w" [attr.height]="f.entrada.h" rx="6" fill="#0B0C0E" />
+    }
+    @case ('traseira') {
+      @let f = frontal();
+      <ellipse [attr.cx]="f.sombra.cx" [attr.cy]="f.sombra.cy" [attr.rx]="f.sombra.rx" [attr.ry]="f.sombra.ry"
+        fill="#000" [attr.opacity]="s.sombra" [attr.filter]="url('desfoque')" />
+      @for (p of f.pneus; track $index) {
+        <rect [attr.x]="p.x" [attr.y]="p.y" [attr.width]="p.w" [attr.height]="p.h" rx="10" fill="#111215" />
+      }
+      <path [attr.d]="f.cabine" [attr.fill]="url('corpo')" />
+      <path [attr.d]="f.vidroTraseiro" [attr.fill]="url('vidro')" />
+      <path [attr.d]="f.vidroTraseiro" [attr.fill]="url('vidro-reflexo')" />
+      <path [attr.d]="f.retrovisorEsq" [attr.fill]="t.medio" />
+      <path [attr.d]="f.retrovisorEsq" [attr.fill]="t.medio" transform="translate(640 0) scale(-1 1)" />
+      <path [attr.d]="f.carroceria" [attr.fill]="url('corpo')" />
+      <path [attr.d]="f.carroceria" [attr.fill]="url('reflexo')" />
+      <rect [attr.x]="f.lanternaBarra.x" [attr.y]="f.lanternaBarra.y + 6" [attr.width]="f.lanternaBarra.w" height="4" rx="2" fill="#6E0B11" />
+      <path [attr.d]="f.lanternaEsq" fill="#C0141C" [attr.filter]="url('brilho')" />
+      <path [attr.d]="f.lanternaEsq" fill="#C0141C" [attr.filter]="url('brilho')" transform="translate(640 0) scale(-1 1)" />
+      <rect [attr.x]="f.placa.x" [attr.y]="f.placa.y" [attr.width]="f.placa.w" [attr.height]="f.placa.h" rx="3" fill="#ECEEF1" />
+      <rect [attr.x]="f.placa.x" [attr.y]="f.placa.y" [attr.width]="f.placa.w" height="5" rx="2" fill="#2B4C9B" />
+      <path [attr.d]="f.difusor" fill="#0B0C0E" />
+    }
+    @default {
+      @let p = perfil();
+      <g [attr.transform]="'translate(' + p.deslocX + ' 0)'">
+        <ellipse cx="322" cy="301" rx="272" ry="9" fill="#000" [attr.opacity]="s.sombra" [attr.filter]="url('desfoque')" />
+        @for (r of p.rodas; track $index) {
+          <ellipse [attr.cx]="r.cx" cy="300" [attr.rx]="r.r * 0.9" ry="5" fill="#000" [attr.opacity]="s.sombra" />
+        }
+
+        <path [attr.d]="p.corpo" [attr.fill]="url('corpo')" />
+        <path [attr.d]="p.corpo" [attr.fill]="url('reflexo')" />
+        <path [attr.d]="p.sombraInferior" fill="#000" opacity="0.28" />
+        <path [attr.d]="p.entradaAr" fill="#0C0D10" />
+        @if (p.molduras) {
+          <path [attr.d]="p.molduras" fill="none" stroke="#15161A" stroke-width="8" />
+        }
+        @if (p.extras) {
+          <path [attr.d]="p.extras" fill="none" stroke="#16171B" stroke-width="5" stroke-linecap="round" />
+        }
+
+        <path [attr.d]="p.janelas" [attr.fill]="url('vidro')" />
+        <path [attr.d]="p.janelas" [attr.fill]="url('vidro-reflexo')" />
+        <path [attr.d]="p.pilares" stroke="#0E0F12" stroke-width="8" stroke-linecap="round" fill="none" />
+        <path [attr.d]="p.portas" [attr.stroke]="t.linha" stroke-width="1.4" opacity="0.6" fill="none" />
+        <path [attr.d]="p.friso" stroke="#fff" [attr.stroke-opacity]="t.brilho" stroke-width="1.6" fill="none" />
+        @for (m of p.macanetas; track $index) {
+          <rect [attr.x]="m.x" [attr.y]="m.y" width="20" height="4.5" rx="2.25" [attr.fill]="t.linha" opacity="0.75" />
+        }
+        <path [attr.d]="p.retrovisor" [attr.fill]="url('corpo')" [attr.stroke]="t.linha" stroke-width="0.8" />
+        <path [attr.d]="p.farol" fill="#EEF3FA" [attr.filter]="url('brilho')" />
+        <path [attr.d]="p.lanterna" fill="#B5121B" [attr.filter]="url('brilho')" />
+
+        @for (r of p.rodas; track $index) {
+          <g [attr.transform]="'translate(' + r.cx + ' ' + r.cy + ')'">
+            <circle [attr.r]="r.r" fill="#111214" />
+            <circle [attr.r]="r.r - 5" fill="none" stroke="#25272C" stroke-width="2" />
+            <circle [attr.r]="r.r * 0.64" fill="#1C1E22" />
+            <circle [attr.r]="r.r * 0.5" fill="none" stroke="#7A1016" stroke-width="5" stroke-dasharray="14 200" transform="rotate(200)" />
+            @for (a of anguloRaios; track a) {
+              <path
+                [attr.transform]="'rotate(' + a + ')'"
+                [attr.d]="'M-2.6 -' + r.r * 0.14 + 'L-5 -' + r.r * 0.6 + 'L5 -' + r.r * 0.6 + 'L2.6 -' + r.r * 0.14 + 'Z'"
+                [attr.fill]="url('aro')"
+              />
+            }
+            <circle [attr.r]="r.r * 0.62" fill="none" [attr.stroke]="url('aro')" stroke-width="3.2" />
+            <circle [attr.r]="r.r * 0.14" fill="#C9CDD2" />
+          </g>
+        }
+      </g>
+    }
+  }
+</svg>

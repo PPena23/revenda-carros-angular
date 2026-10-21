@@ -1,0 +1,76 @@
+@use '../pagina-simples';
+
+.contato {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (min-width: 960px) {
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.loja {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-lg);
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+/* Mapa estilizado em CSS puro (sem serviço externo) */
+.mapa {
+  position: relative;
+  height: 13rem;
+  background:
+    linear-gradient(28deg, transparent 47%, #3a3c43 47.5%, #3a3c43 50.5%, transparent 51%),
+    linear-gradient(-62deg, transparent 58%, #2f3137 58.5%, #2f3137 60.5%, transparent 61%),
+    linear-gradient(90deg, transparent 30%, #2a2c32 30.3%, #2a2c32 31.6%, transparent 32%),
+    repeating-linear-gradient(0deg, #1b1c21 0 38px, #202127 38px 40px),
+    repeating-linear-gradient(90deg, #1b1c21 0 38px, #202127 38px 40px);
+}
+
+.mapa__pino {
+  position: absolute;
+  top: 46%;
+  left: 52%;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50% 50% 50% 0;
+  background: var(--vermelho);
+  color: #fff;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  box-shadow: 0 0 0 10px rgba(225, 6, 0, 0.18);
+
+  app-icone {
+    transform: rotate(45deg);
+  }
+}
+
+.loja__lista {
+  display: grid;
+  gap: 1.1rem;
+  margin: 0;
+  padding: 1.5rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 0.8rem;
+    line-height: 1.5;
+  }
+
+  app-icone {
+    margin-top: 0.1rem;
+    color: var(--texto-suave);
+  }
+}
+
+.loja__aviso {
+  margin: 0;
+  padding: 0 1.5rem 1.5rem;
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+}

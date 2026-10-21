@@ -1,0 +1,76 @@
+<header class="cabecalho">
+  <div>
+    <h1>Leads</h1>
+    <p class="texto-suave">
+      Contatos vindos do site e da loja. Taxa de conversão (fechados ÷ encerrados): <strong>{{ taxaConversao() }}%</strong>
+    </p>
+  </div>
+  <div class="busca">
+    <app-icone nome="busca" [tamanho]="18" />
+    <label for="busca-leads" class="sr-only">Buscar leads</label>
+    <input id="busca-leads" type="search" class="campo__entrada" [formControl]="busca" placeholder="Nome, e-mail, telefone ou carro" />
+  </div>
+</header>
+
+@let e = estado();
+@if (leads() === null && e.status === 'carregando') {
+  <app-skeleton tipo="linha" [quantidade]="6" />
+} @else if (leads() === null && e.status === 'erro') {
+  <app-estado-erro titulo="Não foi possível carregar os leads" [mensagem]="e.mensagem" (tentarNovamente)="recarregar$.next()" />
+} @else if (totalFiltrado() === 0) {
+  <app-estado-vazio icone="leads" titulo="Nenhum lead encontrado" texto="Tente outro termo de busca." />
+} @else {
+  <div class="quadro">
+    @for (col of colunas(); track col.status) {
+      <section class="coluna" [attr.data-status]="col.status" [attr.aria-labelledby]="'col-' + col.status">
+        <header class="coluna__topo">
+          <h2 [id]="'col-' + col.status">{{ rotulo[col.status] }}</h2>
+          <span class="coluna__qtd" [attr.aria-label]="col.itens.length + ' leads'">{{ col.itens.length }}</span>
+        </header>
+        <ul class="coluna__lista">
+          @for (l of col.itens; track l.id) {
+            <li class="lead">
+              <div class="lead__topo">
+                <strong class="lead__nome">{{ l.nome }}</strong>
+                <span class="lead__quando" [title]="(l.criadoEm | date: 'dd/MM/yyyy HH:mm') ?? ''">{{ l.criadoEm | tempoEmEstoque }}</span>
+              </div>
+              @if (l.veiculoId) {
+                <a class="lead__carro" [routerLink]="['/veiculo', l.veiculoId]" target="_blank" rel="noopener">
+                  <app-icone nome="carro" [tamanho]="14" /> {{ l.veiculoTitulo }}
+                  <span class="sr-only">(abre o anúncio em nova aba)</span>
+                </a>
+              } @else {
+                <span class="lead__carro lead__carro--geral">Contato geral</span>
+              }
+              <p class="lead__msg">“{{ l.mensagem }}”</p>
+              <ul class="lead__contato">
+                <li><app-icone nome="telefone" [tamanho]="14" /> {{ l.telefone }}</li>
+                <li><app-icone nome="email" [tamanho]="14" /> {{ l.email }}</li>
+              </ul>
+              <div class="lead__rodape">
+                <span class="lead__origem">{{ origem[l.origem] }} · prefere {{ l.preferencia === 'email' ? 'e-mail' : l.preferencia }}</span>
+              </div>
+              <div class="lead__acoes">
+                <label class="sr-only" [for]="'status-' + l.id">Status de {{ l.nome }}</label>
+                <select [id]="'status-' + l.id" class="campo__entrada" [value]="l.status" (change)="aoSelecionar(l, $event)">
+                  @for (s of pipeline; track s) {
+                    <option [value]="s" [selected]="s === l.status">{{ rotulo[s] }}</option>
+                  }
+                </select>
+                @if (proximo(l.status); as prox) {
+                  <button type="button" class="btn btn--secundario btn--pequeno" (click)="mudarStatus(l, prox)" [attr.aria-label]="'Mover ' + l.nome + ' para ' + rotulo[prox]">
+                    {{ rotulo[prox] }} <app-icone nome="direita" [tamanho]="14" />
+                  </button>
+                } @else {
+                  <app-status-badge [status]="l.status" />
+                }
+              </div>
+            </li>
+          } @empty {
+            <li class="coluna__vazia">Nenhum lead nesta etapa.</li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}

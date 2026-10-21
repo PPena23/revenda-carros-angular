@@ -1,0 +1,108 @@
+<header class="cabecalho">
+  <div>
+    <p class="cabecalho__data">{{ hoje }}</p>
+    <h1>{{ saudacao() }}, {{ auth.usuario()?.nome?.split(' ')?.[0] }}</h1>
+  </div>
+  <a routerLink="/admin/veiculos/novo" class="btn btn--primario"><app-icone nome="mais" [tamanho]="18" /> Cadastrar veículo</a>
+</header>
+
+@let e = estado();
+@if (e.status === 'carregando') {
+  <app-skeleton tipo="kpi" [quantidade]="5" />
+  <div class="grade-paineis"><app-skeleton tipo="linha" [quantidade]="6" /><app-skeleton tipo="linha" [quantidade]="6" /></div>
+} @else if (e.status === 'erro') {
+  <app-estado-erro titulo="Não foi possível carregar o painel" [mensagem]="e.mensagem" (tentarNovamente)="recarregar$.next()" />
+} @else {
+  @let d = e.dados;
+  <section aria-label="Indicadores" class="kpis">
+    <article class="kpi">
+      <span class="kpi__icone"><app-icone nome="carro" /></span>
+      <p class="kpi__rotulo">Veículos em estoque</p>
+      <p class="kpi__valor">{{ d.emEstoque }}</p>
+      <p class="kpi__extra">disponíveis + reservados</p>
+    </article>
+    <article class="kpi">
+      <span class="kpi__icone"><app-icone nome="cifrao" /></span>
+      <p class="kpi__rotulo">Valor do estoque</p>
+      <p class="kpi__valor" [appTooltip]="(d.valorEstoque | moedaBr) ">{{ d.valorEstoque | moedaBr: 'compacto' }}</p>
+      <p class="kpi__extra">soma dos preços anunciados</p>
+    </article>
+    <article class="kpi kpi--destaque">
+      <span class="kpi__icone"><app-icone nome="check" /></span>
+      <p class="kpi__rotulo">Vendidos no mês</p>
+      <p class="kpi__valor">{{ d.vendidosNoMes }}</p>
+      <p class="kpi__extra">{{ d.receitaNoMes | moedaBr: 'compacto' }} faturados</p>
+    </article>
+    <article class="kpi">
+      <span class="kpi__icone"><app-icone nome="leads" /></span>
+      <p class="kpi__rotulo">Leads novos</p>
+      <p class="kpi__valor">{{ d.leadsNovos }}</p>
+      <p class="kpi__extra"><a routerLink="/admin/leads">aguardando contato →</a></p>
+    </article>
+    <article class="kpi">
+      <span class="kpi__icone"><app-icone nome="relogio" /></span>
+      <p class="kpi__rotulo">Tempo médio em estoque</p>
+      <p class="kpi__valor">{{ d.tempoMedioEstoqueDias }} <small>dias</small></p>
+      <p class="kpi__extra">meta da loja: até 45 dias</p>
+    </article>
+  </section>
+
+  <div class="grade-paineis">
+    <section class="painel" aria-labelledby="g-vendas">
+      <header class="painel__topo">
+        <h2 id="g-vendas">Vendas por mês</h2>
+        <span class="texto-suave">últimos 6 meses</span>
+      </header>
+      <app-grafico-barras
+        titulo="Vendas por mês"
+        [dados]="barras()"
+      />
+    </section>
+
+    <section class="painel" aria-labelledby="g-categoria">
+      <header class="painel__topo">
+        <h2 id="g-categoria">Estoque por categoria</h2>
+      </header>
+      <app-grafico-rosca [dados]="fatias()" />
+    </section>
+
+    <section class="painel" aria-labelledby="l-leads">
+      <header class="painel__topo">
+        <h2 id="l-leads">Últimos leads</h2>
+        <a routerLink="/admin/leads" class="link">Ver todos</a>
+      </header>
+      <ul class="lista">
+        @for (l of d.ultimosLeads; track l.id) {
+          <li>
+            <span class="avatar" aria-hidden="true">{{ l.nome.charAt(0) }}</span>
+            <div class="lista__texto">
+              <strong>{{ l.nome }}</strong>
+              <span>{{ l.veiculoTitulo ?? 'Contato geral' }} · {{ l.criadoEm | tempoEmEstoque }}</span>
+            </div>
+            <app-status-badge [status]="l.status" />
+          </li>
+        } @empty {
+          <li class="texto-suave">Nenhum lead ainda.</li>
+        }
+      </ul>
+    </section>
+
+    <section class="painel" aria-labelledby="l-parados">
+      <header class="painel__topo">
+        <h2 id="l-parados">Há mais tempo no pátio</h2>
+        <a routerLink="/admin/veiculos" [queryParams]="{ ordenar: 'antigos' }" class="link">Ver estoque</a>
+      </header>
+      <ul class="lista">
+        @for (v of d.maisTempoEmEstoque; track v.id) {
+          <li>
+            <app-car-illustration class="miniatura" [categoria]="v.categoria" [cor]="v.corHex" tema="claro" [rotulo]="titulo(v)" />
+            <div class="lista__texto">
+              <a [routerLink]="['/admin/veiculos', v.id, 'editar']"><strong>{{ v.marca }} {{ v.modelo }}</strong></a>
+              <span>{{ v.preco | moedaBr: 'inteiro' }} · entrou {{ v.dataEntrada | tempoEmEstoque }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+}

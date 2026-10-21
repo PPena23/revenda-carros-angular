@@ -1,0 +1,138 @@
+.login {
+  display: grid;
+  min-height: 100vh;
+
+  @media (min-width: 960px) {
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
+
+.vitrine {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 3rem;
+  background:
+    radial-gradient(ellipse at 20% 100%, rgba(225, 6, 0, 0.22), transparent 55%),
+    var(--bg);
+  color: var(--texto);
+
+  @media (min-width: 960px) {
+    display: flex;
+  }
+}
+
+.vitrine__carro {
+  border-radius: var(--raio-lg);
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 55%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 55%, #000 55%, transparent 100%);
+}
+
+.vitrine__frase {
+  max-width: 24rem;
+  margin: 0;
+  font: 600 1.6rem/1.25 var(--fonte-display);
+}
+
+.painel {
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: var(--bg);
+  color: var(--texto);
+}
+
+.painel__caixa {
+  width: min(26rem, 100%);
+
+  h1 {
+    margin: 1.5rem 0 0.4rem;
+    font-size: 2rem;
+  }
+
+  > p {
+    margin: 0 0 1.5rem;
+  }
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--texto);
+  }
+}
+
+.demo {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed #d9a400;
+  border-radius: var(--raio);
+  background: #fff8e1;
+  font-size: 0.9rem;
+
+  p {
+    margin: 0 0 0.6rem;
+  }
+
+  code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 0.88rem;
+  }
+}
+
+.demo__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.demo__aviso {
+  color: #7a4b00;
+  font-size: 0.8rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.senha {
+  position: relative;
+
+  input {
+    padding-right: 3rem;
+  }
+}
+
+.senha__ver {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--texto-suave);
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  &:hover,
+  &[aria-pressed='true'] {
+    color: var(--texto);
+    background: var(--superficie-2);
+  }
+}

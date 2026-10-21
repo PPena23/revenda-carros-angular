@@ -1,0 +1,59 @@
+@let v = veiculo();
+<article class="card" [class.card--reservado]="v.status === 'reservado'">
+  <div class="card__midia">
+    <app-car-illustration
+      [categoria]="v.categoria"
+      [cor]="v.corHex"
+      [rotulo]="'Ilustração do ' + tituloCompleto() + ', cor ' + v.cor.toLowerCase()"
+    />
+    <div class="card__selos">
+      @if (v.status === 'reservado') {
+        <app-status-badge status="reservado" />
+      } @else if (v.destaque) {
+        <span class="selo-destaque"><span aria-hidden="true">★</span> Destaque</span>
+      }
+    </div>
+    <div class="card__acoes">
+      <button
+        type="button"
+        class="icone-btn"
+        [class.icone-btn--ativo]="favorito()"
+        [attr.aria-pressed]="favorito()"
+        [attr.aria-label]="(favorito() ? 'Remover dos favoritos: ' : 'Favoritar: ') + titulo()"
+        [appTooltip]="favorito() ? 'Remover dos favoritos' : 'Favoritar'"
+        (click)="alternarFavorito()"
+      >
+        <app-icone nome="coracao" [preenchido]="favorito()" [tamanho]="18" />
+      </button>
+      <button
+        type="button"
+        class="icone-btn"
+        [class.icone-btn--ativo]="comparando()"
+        [attr.aria-pressed]="comparando()"
+        [attr.aria-label]="(comparando() ? 'Remover da comparação: ' : 'Comparar: ') + titulo()"
+        [appTooltip]="comparando() ? 'Remover da comparação' : 'Adicionar à comparação'"
+        (click)="alternarComparacao()"
+      >
+        <app-icone nome="comparar" [tamanho]="18" />
+      </button>
+    </div>
+  </div>
+
+  <div class="card__corpo">
+    <p class="card__sobretitulo">{{ v.marca }} · {{ v.categoria }}</p>
+    <h3 class="card__titulo">
+      <!-- O link cobre o card inteiro (::after), mantendo um único destino de foco -->
+      <a [routerLink]="['/veiculo', v.id]" class="card__link">{{ v.modelo }} <span>{{ v.versao }}</span></a>
+    </h3>
+    <ul class="card__specs" aria-label="Características">
+      <li>{{ v.anoFabricacao }}/{{ v.anoModelo }}</li>
+      <li>{{ v.km | km }}</li>
+      <li>{{ v.cambio }}</li>
+      <li>{{ v.combustivel }}</li>
+    </ul>
+    <div class="card__rodape">
+      <p class="card__preco"><span class="sr-only">Preço: </span>{{ v.preco | moedaBr: 'inteiro' }}</p>
+      <span class="card__ver" aria-hidden="true">Ver detalhes <app-icone nome="seta" [tamanho]="16" /></span>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,266 @@
+<div class="container">
+  <header class="cabecalho">
+    <p class="sobretitulo">Estoque</p>
+    <h1 class="cabecalho__titulo">Seminovos à pronta entrega</h1>
+  </header>
+
+  <div class="layout">
+    <!-- Painel de filtros: barra lateral no desktop, gaveta no celular -->
+    <aside
+      id="painel-filtros"
+      class="filtros"
+      [class.filtros--aberto]="filtrosAbertos()"
+      aria-labelledby="filtros-titulo"
+    >
+      <div class="filtros__topo">
+        <h2 id="filtros-titulo" class="filtros__titulo">
+          <app-icone nome="filtro" [tamanho]="18" /> Filtros
+        </h2>
+        @if (qtdFiltros()) {
+          <button type="button" class="btn btn--fantasma btn--pequeno" (click)="limparFiltros()">Limpar</button>
+        }
+        <button type="button" class="filtros__fechar" aria-label="Fechar filtros" (click)="filtrosAbertos.set(false)">
+          <app-icone nome="fechar" />
+        </button>
+      </div>
+
+      <form [formGroup]="form" class="filtros__form" (submit)="$event.preventDefault()">
+        <div class="campo">
+          <label class="campo__rotulo" for="f-q">Buscar</label>
+          <input id="f-q" type="search" class="campo__entrada" formControlName="q" placeholder="Modelo ou versão" />
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="f-marca">Marca</label>
+          <select id="f-marca" class="campo__entrada" formControlName="marca">
+            <option value="">Todas</option>
+            @for (m of opcoes()?.marcas ?? []; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+
+        <fieldset class="grupo">
+          <legend class="campo__rotulo">Categoria</legend>
+          <div class="segmentos">
+            <label class="segmento">
+              <input type="radio" formControlName="categoria" value="" />
+              <span>Todas</span>
+            </label>
+            @for (c of categorias; track c) {
+              <label class="segmento">
+                <input type="radio" formControlName="categoria" [value]="c" />
+                <span>{{ c }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo">
+          <legend class="campo__rotulo">Faixa de preço</legend>
+          <div class="dupla">
+            <div class="campo">
+              <label class="sr-only" for="f-pmin">Preço mínimo</label>
+              <select id="f-pmin" class="campo__entrada" formControlName="precoMin">
+                <option value="">Mín.</option>
+                @for (v of faixasMin; track v) {
+                  <option [value]="v">{{ v | moedaBr: 'inteiro' }}</option>
+                }
+              </select>
+            </div>
+            <div class="campo">
+              <label class="sr-only" for="f-pmax">Preço máximo</label>
+              <select id="f-pmax" class="campo__entrada" formControlName="precoMax">
+                <option value="">Máx.</option>
+                @for (v of faixasMax; track v) {
+                  <option [value]="v">{{ v | moedaBr: 'inteiro' }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="dupla">
+          <div class="campo">
+            <label class="campo__rotulo" for="f-ano">Ano a partir de</label>
+            <select id="f-ano" class="campo__entrada" formControlName="anoMin">
+              <option value="">Qualquer</option>
+              @for (a of anos(); track a) {
+                <option [value]="a">{{ a }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="f-km">Km máximo</label>
+            <select id="f-km" class="campo__entrada" formControlName="kmMax">
+              <option value="">Qualquer</option>
+              @for (k of kms; track k) {
+                <option [value]="k">{{ k | km }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="dupla">
+          <div class="campo">
+            <label class="campo__rotulo" for="f-cambio">Câmbio</label>
+            <select id="f-cambio" class="campo__entrada" formControlName="cambio">
+              <option value="">Todos</option>
+              @for (c of cambios; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="f-comb">Combustível</label>
+            <select id="f-comb" class="campo__entrada" formControlName="combustivel">
+              <option value="">Todos</option>
+              @for (c of combustiveis; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="grupo">
+          <legend class="campo__rotulo">Cor</legend>
+          <div class="cores">
+            <label class="cor">
+              <input type="radio" formControlName="cor" value="" />
+              <span class="cor__amostra cor__amostra--todas" aria-hidden="true"></span>
+              <span class="cor__nome">Todas</span>
+            </label>
+            @for (c of cores(); track c.nome) {
+              <label class="cor">
+                <input type="radio" formControlName="cor" [value]="c.nome" />
+                <span class="cor__amostra" [style.background]="c.hex" aria-hidden="true"></span>
+                <span class="cor__nome">{{ c.nome }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="filtros__rodape">
+        <button type="button" class="btn btn--primario btn--bloco" (click)="filtrosAbertos.set(false)">
+          @if (resultado(); as r) {
+            @if (r.status === 'sucesso') {
+              Ver {{ r.dados.total }} {{ r.dados.total === 1 ? 'resultado' : 'resultados' }}
+            } @else {
+              Ver resultados
+            }
+          }
+        </button>
+      </div>
+    </aside>
+    @if (filtrosAbertos()) {
+      <div class="veu" (click)="filtrosAbertos.set(false)" aria-hidden="true"></div>
+    }
+
+    <section id="resultados" class="resultados" aria-labelledby="resultados-titulo">
+      @let r = resultado();
+      <div class="resultados__barra">
+        <button
+          type="button"
+          class="btn btn--secundario btn--pequeno abrir-filtros"
+          aria-controls="painel-filtros"
+          [attr.aria-expanded]="filtrosAbertos()"
+          (click)="filtrosAbertos.set(true)"
+        >
+          <app-icone nome="filtro" [tamanho]="16" /> Filtros
+          @if (qtdFiltros()) {
+            <span class="badge">{{ qtdFiltros() }}</span>
+          }
+        </button>
+
+        <h2 id="resultados-titulo" class="resultados__contagem" aria-live="polite">
+          @if (r.status === 'sucesso') {
+            <strong>{{ r.dados.total }}</strong> {{ r.dados.total === 1 ? 'veículo encontrado' : 'veículos encontrados' }}
+          } @else if (r.status === 'carregando') {
+            Buscando veículos…
+          } @else {
+            Resultados indisponíveis
+          }
+        </h2>
+
+        <div class="ordenar">
+          <label for="ordenar" class="ordenar__rotulo"><app-icone nome="ordenar" [tamanho]="16" /> Ordenar</label>
+          <select id="ordenar" class="campo__entrada ordenar__select" [formControl]="ordenacao">
+            @for (o of ordenacoes; track o.valor) {
+              <option [value]="o.valor">{{ o.rotulo }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      @if (chipsAtivos().length) {
+        <ul class="ativos" aria-label="Filtros ativos">
+          @for (c of chipsAtivos(); track c.chave) {
+            <li>
+              <button type="button" class="chip chip--remover" (click)="removerFiltro(c.chave)" [attr.aria-label]="'Remover filtro ' + c.rotulo">
+                {{ c.rotulo }} <app-icone nome="fechar" [tamanho]="14" />
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (r.status === 'carregando') {
+        <app-skeleton tipo="card" [quantidade]="6" />
+      } @else if (r.status === 'erro') {
+        <app-estado-erro titulo="Não foi possível buscar o estoque" [mensagem]="r.mensagem" (tentarNovamente)="tentarNovamente()" />
+      } @else if (r.dados.total === 0) {
+        <app-estado-vazio
+          icone="busca"
+          titulo="Nenhum veículo com esses filtros"
+          texto="Tente remover algum filtro ou ampliar a faixa de preço."
+        >
+          <button type="button" class="btn btn--secundario" (click)="limparFiltros()">Limpar filtros</button>
+        </app-estado-vazio>
+      } @else {
+        <ul class="grade">
+          @for (v of r.dados.itens; track v.id) {
+            <li><app-veiculo-card [veiculo]="v" /></li>
+          }
+        </ul>
+
+        @if (totalPaginas() > 1) {
+          <nav class="paginacao" aria-label="Paginação">
+            <button
+              type="button"
+              class="btn btn--secundario btn--pequeno"
+              [disabled]="r.dados.pagina === 1"
+              (click)="irParaPagina(r.dados.pagina - 1)"
+            >
+              <app-icone nome="esquerda" [tamanho]="16" /> Anterior
+            </button>
+            <ol class="paginacao__numeros">
+              @for (p of paginas(); track p; let i = $index) {
+                <li>
+                  <button
+                    type="button"
+                    class="paginacao__num"
+                    [class.ativo]="r.dados.pagina === i + 1"
+                    [attr.aria-current]="r.dados.pagina === i + 1 ? 'page' : null"
+                    [attr.aria-label]="'Página ' + (i + 1)"
+                    (click)="irParaPagina(i + 1)"
+                  >
+                    {{ i + 1 }}
+                  </button>
+                </li>
+              }
+            </ol>
+            <button
+              type="button"
+              class="btn btn--secundario btn--pequeno"
+              [disabled]="r.dados.pagina >= totalPaginas()"
+              (click)="irParaPagina(r.dados.pagina + 1)"
+            >
+              Próxima <app-icone nome="direita" [tamanho]="16" />
+            </button>
+          </nav>
+        }
+      }
+    </section>
+  </div>
+</div>

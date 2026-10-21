@@ -1,0 +1,82 @@
+<section class="simulador" aria-labelledby="sim-titulo">
+  <header>
+    <p class="sobretitulo">Financiamento</p>
+    <h2 id="sim-titulo" class="simulador__titulo">Simule sua parcela</h2>
+  </header>
+
+  <form [formGroup]="form" class="simulador__form" (submit)="$event.preventDefault()">
+    <div class="campo">
+      <label class="campo__rotulo" for="sim-entrada">Entrada</label>
+      <div class="com-prefixo">
+        <span aria-hidden="true">R$</span>
+        <input
+          id="sim-entrada"
+          type="number"
+          inputmode="numeric"
+          class="campo__entrada"
+          formControlName="entrada"
+          min="0"
+          step="1000"
+          aria-describedby="sim-entrada-ajuda"
+        />
+      </div>
+      <input
+        type="range"
+        class="faixa"
+        formControlName="entrada"
+        min="0"
+        [max]="preco() * 0.9"
+        step="1000"
+        aria-label="Ajustar entrada"
+      />
+      <p id="sim-entrada-ajuda" class="campo__ajuda">{{ percentualEntrada() }}% do valor do veículo</p>
+      @if (erro('entrada', 'entradaAlta')) {
+        <p class="campo__erro">A entrada pode ser de no máximo 90% do valor.</p>
+      }
+      @if (erro('entrada', 'min') || erro('entrada', 'required')) {
+        <p class="campo__erro">Informe um valor de entrada válido.</p>
+      }
+    </div>
+
+    <fieldset class="campo">
+      <legend class="campo__rotulo">Número de parcelas</legend>
+      <div class="parcelas">
+        @for (n of opcoesParcelas; track n) {
+          <label class="parcela">
+            <input type="radio" formControlName="parcelas" [value]="n" />
+            <span>{{ n }}x</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="sim-taxa">Taxa de juros</label>
+      <div class="com-sufixo">
+        <input id="sim-taxa" type="number" inputmode="decimal" class="campo__entrada" formControlName="taxa" min="0" max="5" step="0.01" />
+        <span aria-hidden="true">% a.m.</span>
+      </div>
+      <p class="campo__ajuda">Taxa de referência da loja: {{ config.taxaMensalPadrao | number: '1.2-2' }}% ao mês</p>
+      @if (erro('taxa', 'max') || erro('taxa', 'min') || erro('taxa', 'required')) {
+        <p class="campo__erro">Informe uma taxa entre 0% e 5% ao mês.</p>
+      }
+    </div>
+  </form>
+
+  <div class="resultado" aria-live="polite">
+    @if (resultado(); as r) {
+      <p class="resultado__rotulo">{{ r.parcelas }} parcelas de</p>
+      <p class="resultado__parcela">{{ r.parcela | moedaBr }}</p>
+      <dl class="resultado__detalhes">
+        <div><dt>Valor financiado</dt><dd>{{ r.valorFinanciado | moedaBr }}</dd></div>
+        <div><dt>Juros totais</dt><dd>{{ r.jurosTotais | moedaBr }}</dd></div>
+        <div><dt>Custo total (com entrada)</dt><dd>{{ r.custoTotal | moedaBr }}</dd></div>
+      </dl>
+    } @else {
+      <p class="resultado__rotulo">Ajuste os valores para ver a simulação.</p>
+    }
+    <p class="resultado__aviso">
+      Simulação ilustrativa pela Tabela Price, sem IOF, tarifas ou seguro. Sujeita à análise de crédito.
+    </p>
+  </div>
+</section>

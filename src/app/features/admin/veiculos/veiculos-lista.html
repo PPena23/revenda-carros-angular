@@ -1,0 +1,129 @@
+<header class="cabecalho">
+  <div>
+    <h1>Veículos</h1>
+    <p class="texto-suave">Gerencie o estoque, edite anúncios e registre vendas.</p>
+  </div>
+  <a routerLink="/admin/veiculos/novo" class="btn btn--primario"><app-icone nome="mais" [tamanho]="18" /> Novo veículo</a>
+</header>
+
+<div class="ferramentas">
+  <div class="abas" role="group" aria-label="Filtrar por status">
+    @for (a of abas; track a.valor) {
+      <button
+        type="button"
+        class="aba"
+        [attr.aria-pressed]="filtroStatus() === a.valor"
+        (click)="filtroStatus.set(a.valor)"
+      >
+        {{ a.rotulo }}
+        <span class="aba__qtd">{{ contagem()[a.valor] }}</span>
+      </button>
+    }
+  </div>
+  <div class="ferramentas__campos">
+    <div class="busca">
+      <app-icone nome="busca" [tamanho]="18" />
+      <label for="busca-veiculos" class="sr-only">Buscar por modelo ou placa</label>
+      <input id="busca-veiculos" type="search" class="campo__entrada" [formControl]="busca" placeholder="Buscar modelo ou placa" />
+    </div>
+    <label for="filtro-cat" class="sr-only">Categoria</label>
+    <select id="filtro-cat" class="campo__entrada" [formControl]="filtroCategoria">
+      <option value="">Todas as categorias</option>
+      @for (c of categorias; track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@let e = estado();
+@if (lista() === null && e.status === 'carregando') {
+  <app-skeleton tipo="linha" [quantidade]="8" />
+} @else if (lista() === null && e.status === 'erro') {
+  <app-estado-erro titulo="Não foi possível carregar os veículos" [mensagem]="e.mensagem" (tentarNovamente)="tentarNovamente()" />
+} @else {
+  <p class="resumo" aria-live="polite">
+    {{ filtrados().length }} de {{ contagem().todos }} veículos
+    @if (atualizando()) {
+      <span class="girando" aria-hidden="true"></span><span class="sr-only">Atualizando…</span>
+    }
+  </p>
+
+  @if (filtrados().length === 0) {
+    <app-estado-vazio icone="busca" titulo="Nenhum veículo encontrado" texto="Ajuste a busca ou os filtros.">
+      <button type="button" class="btn btn--secundario" (click)="limparFiltros()">Limpar filtros</button>
+    </app-estado-vazio>
+  } @else {
+    <div class="tabela-caixa">
+      <table class="tabela">
+        <caption class="sr-only">Veículos cadastrados. Clique nos cabeçalhos para ordenar.</caption>
+        <thead>
+          <tr>
+            @for (c of colunas; track c.id) {
+              <th scope="col" [attr.aria-sort]="ariaSort(c.id)">
+                <button type="button" class="ordenar" (click)="ordenarPor(c.id)">
+                  {{ c.rotulo }}
+                  <span class="ordenar__seta" aria-hidden="true">
+                    {{ ariaSort(c.id) === 'ascending' ? '↑' : ariaSort(c.id) === 'descending' ? '↓' : '↕' }}
+                  </span>
+                </button>
+              </th>
+            }
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of filtrados(); track v.id) {
+            <tr [class.vendido]="v.status === 'vendido'">
+              <td data-rotulo="Veículo">
+                <div class="veiculo">
+                  <app-car-illustration class="veiculo__img" [categoria]="v.categoria" [cor]="v.corHex" tema="claro" [rotulo]="titulo(v)" />
+                  <div>
+                    <strong>{{ v.marca }} {{ v.modelo }}</strong>
+                    <span>{{ v.versao }} · <span class="placa">{{ v.placa }}</span></span>
+                  </div>
+                  @if (v.destaque) {
+                    <span class="estrela" appTooltip="Destaque no catálogo" tabindex="0" aria-label="Destaque no catálogo">★</span>
+                  }
+                </div>
+              </td>
+              <td data-rotulo="Ano">{{ v.anoFabricacao }}/{{ v.anoModelo }}</td>
+              <td data-rotulo="Km">{{ v.km | km }}</td>
+              <td data-rotulo="Preço">
+                <strong>{{ v.preco | moedaBr: 'inteiro' }}</strong>
+                @if (v.precoVenda) {
+                  <span class="sub">vendido por {{ v.precoVenda | moedaBr: 'inteiro' }}</span>
+                }
+              </td>
+              <td data-rotulo="Status"><app-status-badge [status]="v.status" /></td>
+              <td data-rotulo="No estoque">
+                @if (v.dataVenda) {
+                  <span class="sub">vendido {{ v.dataVenda | tempoEmEstoque }}</span>
+                } @else {
+                  {{ v.dataEntrada | tempoEmEstoque }}
+                }
+              </td>
+              <td class="acoes">
+                <a class="acao" [routerLink]="['/admin/veiculos', v.id, 'editar']" [attr.aria-label]="'Editar ' + titulo(v)" appTooltip="Editar">
+                  <app-icone nome="editar" [tamanho]="18" />
+                </a>
+                @if (v.status !== 'vendido') {
+                  <button type="button" class="acao" [attr.aria-label]="'Registrar venda de ' + titulo(v)" appTooltip="Marcar como vendido" (click)="vendendo.set(v)">
+                    <app-icone nome="cifrao" [tamanho]="18" />
+                  </button>
+                }
+                <button type="button" class="acao acao--perigo" [attr.aria-label]="'Excluir ' + titulo(v)" appTooltip="Excluir" (click)="excluir(v)">
+                  <app-icone nome="lixeira" [tamanho]="18" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+@if (vendendo(); as v) {
+  <app-venda-dialogo [veiculo]="v" (concluido)="vendaConcluida($event)" (cancelado)="vendendo.set(null)" />
+}

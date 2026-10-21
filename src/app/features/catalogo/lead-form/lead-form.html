@@ -1,0 +1,123 @@
+<section class="lead" [attr.aria-labelledby]="uid + '-titulo'">
+  @if (enviado(); as lead) {
+    <div class="lead__sucesso" role="status">
+      <span class="lead__check"><app-icone nome="check" [tamanho]="28" /></span>
+      <h2 [id]="uid + '-titulo'">Mensagem enviada!</h2>
+      <p>
+        Obrigado, {{ lead.nome.split(' ')[0] }}. Um consultor vai falar com você por
+        {{ lead.preferencia === 'email' ? 'e-mail' : lead.preferencia === 'telefone' ? 'telefone' : 'WhatsApp' }}
+        em breve.
+      </p>
+      <p class="lead__demo">
+        <app-icone nome="olho" [tamanho]="16" />
+        Demonstração: este contato já aparece em <a routerLink="/admin/leads">Painel → Leads</a>.
+      </p>
+      <button type="button" class="btn btn--secundario" (click)="novoContato()">Enviar outra mensagem</button>
+    </div>
+  } @else {
+    <h2 [id]="uid + '-titulo'" class="lead__titulo">{{ titulo() }}</h2>
+    <p class="lead__sub">Responderemos em até 1 hora no horário comercial.</p>
+
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="lead__form">
+      <div class="campo">
+        <label class="campo__rotulo" [for]="uid + '-nome'">Nome completo</label>
+        <input
+          [id]="uid + '-nome'"
+          class="campo__entrada"
+          formControlName="nome"
+          autocomplete="name"
+          [attr.aria-invalid]="invalido('nome')"
+          [attr.aria-describedby]="invalido('nome') ? uid + '-nome-erro' : null"
+        />
+        @if (invalido('nome')) {
+          <p class="campo__erro" [id]="uid + '-nome-erro'">{{ erro('nome') }}</p>
+        }
+      </div>
+
+      <div class="lead__dupla">
+        <div class="campo">
+          <label class="campo__rotulo" [for]="uid + '-tel'">Telefone / WhatsApp</label>
+          <input
+            [id]="uid + '-tel'"
+            type="tel"
+            class="campo__entrada"
+            formControlName="telefone"
+            appMascaraTelefone
+            placeholder="(16) 99999-9999"
+            [attr.aria-invalid]="invalido('telefone')"
+            [attr.aria-describedby]="invalido('telefone') ? uid + '-tel-erro' : null"
+          />
+          @if (invalido('telefone')) {
+            <p class="campo__erro" [id]="uid + '-tel-erro'">{{ erro('telefone') }}</p>
+          }
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" [for]="uid + '-email'">E-mail</label>
+          <input
+            [id]="uid + '-email'"
+            type="email"
+            class="campo__entrada"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="nome@exemplo.com"
+            [attr.aria-invalid]="invalido('email')"
+            [attr.aria-describedby]="invalido('email') ? uid + '-email-erro' : null"
+          />
+          @if (invalido('email')) {
+            <p class="campo__erro" [id]="uid + '-email-erro'">{{ erro('email') }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" [for]="uid + '-msg'">Mensagem</label>
+        <textarea
+          [id]="uid + '-msg'"
+          class="campo__entrada"
+          formControlName="mensagem"
+          rows="3"
+          [attr.aria-invalid]="invalido('mensagem')"
+          [attr.aria-describedby]="uid + '-msg-ajuda'"
+        ></textarea>
+        <p class="campo__ajuda" [id]="uid + '-msg-ajuda'">{{ form.controls.mensagem.value.length }}/500</p>
+        @if (invalido('mensagem')) {
+          <p class="campo__erro">{{ erro('mensagem') }}</p>
+        }
+      </div>
+
+      <fieldset class="campo">
+        <legend class="campo__rotulo">Prefiro ser contatado por</legend>
+        <div class="lead__opcoes">
+          @for (p of preferencias; track p.valor) {
+            <label class="lead__opcao">
+              <input type="radio" formControlName="preferencia" [value]="p.valor" />
+              <span>{{ p.rotulo }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="campo">
+        <label class="caixa-selecao">
+          <input type="checkbox" formControlName="aceite" [attr.aria-invalid]="invalido('aceite')" />
+          <span>Autorizo o contato da loja sobre este veículo (dados fictícios — nada é enviado de verdade).</span>
+        </label>
+        @if (invalido('aceite')) {
+          <p class="campo__erro">{{ erro('aceite') }}</p>
+        }
+      </div>
+
+      @if (erroEnvio()) {
+        <p class="campo__erro" role="alert">{{ erroEnvio() }}</p>
+      }
+
+      <button type="submit" class="btn btn--primario btn--grande btn--bloco" [disabled]="enviando()">
+        @if (enviando()) {
+          <span class="girando" aria-hidden="true"></span> Enviando…
+        } @else {
+          Quero ser contatado
+        }
+      </button>
+    </form>
+  }
+</section>

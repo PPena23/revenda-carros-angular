@@ -1,0 +1,298 @@
+<nav class="trilha" aria-label="Você está em">
+  <a routerLink="/admin/veiculos"><app-icone nome="esquerda" [tamanho]="16" /> Veículos</a>
+</nav>
+<header class="cabecalho">
+  <h1>{{ modoEdicao() ? 'Editar veículo' : 'Novo veículo' }}</h1>
+  @if (form.dirty) {
+    <span class="pendente" role="status">Alterações não salvas</span>
+  }
+</header>
+
+@if (carregando()) {
+  <app-skeleton tipo="linha" [quantidade]="8" />
+} @else if (erroCarga()) {
+  <app-estado-erro titulo="Não foi possível carregar o veículo" [mensagem]="erroCarga()!" (tentarNovamente)="carregar(id()!)" />
+} @else {
+  <div class="layout">
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate class="formulario">
+      @if (resumoErros().length) {
+        <div id="resumo-erros" class="resumo-erros" role="alert" tabindex="-1">
+          <p><strong>Corrija {{ resumoErros().length }} {{ resumoErros().length === 1 ? 'item' : 'itens' }} antes de salvar:</strong></p>
+          <ul>
+            @for (e of resumoErros(); track e.texto) {
+              <li><button type="button" class="link-erro" (click)="focar(e.id)">{{ e.texto }}</button></li>
+            }
+          </ul>
+        </div>
+      }
+
+      <!-- 1. Identificação -->
+      <fieldset class="secao">
+        <legend>Identificação</legend>
+        <div class="grade grade--3">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-marca">Marca</label>
+            <input id="campo-marca" class="campo__entrada" formControlName="marca" list="lista-marcas" autocomplete="off" />
+            <datalist id="lista-marcas">
+              @for (m of marcas; track m) {
+                <option [value]="m"></option>
+              }
+            </datalist>
+            @if (mostrarErro('marca')) {
+              <p class="campo__erro">{{ erro('marca') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-modelo">Modelo</label>
+            <input id="campo-modelo" class="campo__entrada" formControlName="modelo" placeholder="Ex.: Corolla" />
+            @if (mostrarErro('modelo')) {
+              <p class="campo__erro">{{ erro('modelo') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-versao">Versão <span class="opcional">(opcional)</span></label>
+            <input id="campo-versao" class="campo__entrada" formControlName="versao" placeholder="Ex.: XEi" />
+          </div>
+        </div>
+
+        <div class="grade grade--3">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-categoria">Carroceria</label>
+            <select id="campo-categoria" class="campo__entrada" formControlName="categoria">
+              @for (c of categorias; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-placa">Placa</label>
+            <div class="com-status">
+              <input
+                id="campo-placa"
+                class="campo__entrada placa"
+                formControlName="placa"
+                appMascaraPlaca
+                placeholder="ABC1D23"
+                aria-describedby="placa-ajuda"
+              />
+              @if (statusPlaca() === 'PENDING') {
+                <span class="girando com-status__icone" aria-hidden="true"></span>
+              } @else if (statusPlaca() === 'VALID') {
+                <span class="com-status__icone com-status__icone--ok" aria-hidden="true"><app-icone nome="check" [tamanho]="16" /></span>
+              }
+            </div>
+            <p id="placa-ajuda" class="campo__ajuda" aria-live="polite">
+              {{ statusPlaca() === 'PENDING' ? 'Verificando se a placa já existe…' : 'Padrão Mercosul. Validada na API simulada.' }}
+            </p>
+            @if (mostrarErro('placa')) {
+              <p class="campo__erro">{{ erro('placa') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-motor">Motor</label>
+            <input id="campo-motor" class="campo__entrada" formControlName="motor" placeholder="Ex.: 2.0 Flex" />
+            @if (mostrarErro('motor')) {
+              <p class="campo__erro">{{ erro('motor') }}</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 2. Ano e uso -->
+      <fieldset class="secao">
+        <legend>Ano e uso</legend>
+        <div class="grade grade--4" formGroupName="anos">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-anoFabricacao">Ano de fabricação</label>
+            <input id="campo-anoFabricacao" type="number" class="campo__entrada" formControlName="anoFabricacao" min="1990" [max]="anoMax - 1" />
+            @if (mostrarErro('anos.anoFabricacao')) {
+              <p class="campo__erro">{{ erro('anos.anoFabricacao') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-anoModelo">Ano modelo</label>
+            <input
+              id="campo-anoModelo"
+              type="number"
+              class="campo__entrada"
+              formControlName="anoModelo"
+              [class.ng-invalid]="form.controls.anos.invalid"
+              aria-describedby="anos-ajuda"
+            />
+            @if (mostrarErro('anos.anoModelo')) {
+              <p class="campo__erro">{{ erro('anos.anoModelo') }}</p>
+            }
+          </div>
+        </div>
+        <p id="anos-ajuda" class="campo__ajuda">O ano modelo deve ser igual ao de fabricação ou o ano seguinte.</p>
+        @let erroAnos = form.controls.anos.errors?.['anoModelo'];
+        @if (erroAnos && (form.controls.anos.touched || tentouSalvar())) {
+          <p class="campo__erro">{{ erroAnos }}</p>
+        }
+
+        <div class="grade grade--4">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-km">Quilometragem</label>
+            <input id="campo-km" type="number" inputmode="numeric" class="campo__entrada" formControlName="km" min="0" step="1000" />
+            @if (mostrarErro('km')) {
+              <p class="campo__erro">{{ erro('km') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-cambio">Câmbio</label>
+            <select id="campo-cambio" class="campo__entrada" formControlName="cambio">
+              @for (c of cambios; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-combustivel">Combustível</label>
+            <select id="campo-combustivel" class="campo__entrada" formControlName="combustivel">
+              @for (c of combustiveis; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-portas">Portas</label>
+            <select id="campo-portas" class="campo__entrada" formControlName="portas">
+              <option [ngValue]="2">2</option>
+              <option [ngValue]="4">4</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 3. Aparência -->
+      <fieldset class="secao">
+        <legend>Cor</legend>
+        <div class="cores" role="group" aria-label="Cores rápidas">
+          @for (c of cores; track c.nome) {
+            <button
+              type="button"
+              class="cor"
+              [class.cor--ativa]="previa().cor === c.nome"
+              [attr.aria-pressed]="previa().cor === c.nome"
+              (click)="escolherCor(c.nome, c.hex)"
+            >
+              <span class="cor__amostra" [style.background]="c.hex" aria-hidden="true"></span>{{ c.nome }}
+            </button>
+          }
+        </div>
+        <div class="grade grade--3">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-cor">Nome da cor</label>
+            <input id="campo-cor" class="campo__entrada" formControlName="cor" />
+            @if (mostrarErro('cor')) {
+              <p class="campo__erro">{{ erro('cor') }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-corHex">Tom personalizado</label>
+            <input id="campo-corHex" type="color" class="campo__entrada cor-picker" formControlName="corHex" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 4. Comercial -->
+      <fieldset class="secao">
+        <legend>Anúncio</legend>
+        <div class="grade grade--3">
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-preco">Preço (R$)</label>
+            <input id="campo-preco" type="number" inputmode="numeric" class="campo__entrada" formControlName="preco" min="1" step="100" />
+            @if (mostrarErro('preco')) {
+              <p class="campo__erro">{{ erro('preco') }}</p>
+            } @else {
+              <p class="campo__ajuda">{{ previa().preco | moedaBr }}</p>
+            }
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="campo-status">Status</label>
+            <select id="campo-status" class="campo__entrada" formControlName="status">
+              @for (s of opcoesStatus(); track s) {
+                <option [value]="s">{{ rotuloStatus[s] }}</option>
+              }
+            </select>
+            <p class="campo__ajuda">Para vender, use a ação "Marcar como vendido" na lista.</p>
+          </div>
+          <div class="campo campo--check">
+            <label class="caixa-selecao">
+              <input type="checkbox" formControlName="destaque" />
+              <span>Destacar na página inicial</span>
+            </label>
+          </div>
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="campo-descricao">Descrição</label>
+          <textarea id="campo-descricao" class="campo__entrada" formControlName="descricao" rows="4"></textarea>
+          <p class="campo__ajuda">{{ previa().descricao.length }}/600 caracteres</p>
+          @if (mostrarErro('descricao')) {
+            <p class="campo__erro">{{ erro('descricao') }}</p>
+          }
+        </div>
+      </fieldset>
+
+      <!-- 5. Opcionais: FormArray -->
+      <fieldset class="secao" id="opcionais" tabindex="-1">
+        <legend>Opcionais <span class="contagem">{{ opcionais.length }}</span></legend>
+        <ul class="opcionais" formArrayName="opcionais">
+          @for (ctrl of opcionais.controls; track ctrl; let i = $index) {
+            <li>
+              <label class="sr-only" [for]="'opcional-' + i">Opcional {{ i + 1 }}</label>
+              <input [id]="'opcional-' + i" class="campo__entrada" [formControlName]="i" placeholder="Ex.: Teto solar" />
+              <button type="button" class="remover" [attr.aria-label]="'Remover opcional ' + (ctrl.value || i + 1)" (click)="removerOpcional(i)">
+                <app-icone nome="fechar" [tamanho]="16" />
+              </button>
+            </li>
+          } @empty {
+            <li class="texto-suave">Nenhum opcional. Adicione abaixo ou use as sugestões.</li>
+          }
+        </ul>
+        @if (opcionais.hasError('duplicados')) {
+          <p class="campo__erro">Há opcionais repetidos.</p>
+        }
+        @if (opcionais.invalid && !opcionais.hasError('duplicados') && (opcionais.touched || tentouSalvar())) {
+          <p class="campo__erro">Preencha ou remova os opcionais vazios.</p>
+        }
+        <button type="button" class="btn btn--secundario btn--pequeno" (click)="adicionarOpcional()">
+          <app-icone nome="mais" [tamanho]="16" /> Adicionar opcional
+        </button>
+        <div class="sugestoes">
+          <p class="campo__ajuda">Sugestões:</p>
+          @for (s of sugestoes(); track s) {
+            <button type="button" class="chip chip--pequeno" (click)="adicionarOpcional(s)">+ {{ s }}</button>
+          }
+        </div>
+      </fieldset>
+
+      <div class="rodape-form">
+        <a routerLink="/admin/veiculos" class="btn btn--fantasma">Cancelar</a>
+        <button type="submit" class="btn btn--primario btn--grande" [disabled]="salvando()">
+          @if (salvando()) {
+            <span class="girando" aria-hidden="true"></span> Salvando…
+          } @else {
+            {{ modoEdicao() ? 'Salvar alterações' : 'Cadastrar veículo' }}
+          }
+        </button>
+      </div>
+    </form>
+
+    <!-- Prévia ao vivo do card do catálogo -->
+    <aside class="previa" aria-label="Prévia do anúncio">
+      @let p = previa();
+      <p class="previa__rotulo">Prévia do anúncio</p>
+      <div class="previa__card tema-escuro">
+        <app-car-illustration [categoria]="p.categoria" [cor]="p.corHex" [rotulo]="'Prévia: ' + p.marca + ' ' + p.modelo" />
+        <div class="previa__corpo">
+          <p class="previa__marca">{{ p.marca || 'Marca' }} · {{ p.categoria }}</p>
+          <p class="previa__titulo">{{ p.modelo || 'Modelo' }} <span>{{ p.versao }}</span></p>
+          <p class="previa__specs">{{ p.anos.anoFabricacao }}/{{ p.anos.anoModelo }} · {{ p.km | km }} · {{ p.cambio }}</p>
+          <p class="previa__preco">{{ p.preco | moedaBr: 'inteiro' }}</p>
+        </div>
+      </div>
+      <p class="campo__ajuda">Status do formulário: <strong>{{ statusForm() === 'VALID' ? 'válido' : statusForm() === 'PENDING' ? 'verificando…' : 'com pendências' }}</strong></p>
+    </aside>
+  </div>
+}

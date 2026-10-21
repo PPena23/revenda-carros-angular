@@ -1,0 +1,83 @@
+<div class="login">
+  <section class="vitrine tema-escuro" aria-hidden="true">
+    <app-logo />
+    <div class="vitrine__carro">
+      <app-car-illustration categoria="Sedã" cor="#24467F" />
+    </div>
+    <p class="vitrine__frase">Estoque, vendas e leads da loja em um só lugar.</p>
+  </section>
+
+  <main class="painel tema-claro">
+    <div class="painel__caixa">
+      <a routerLink="/" class="voltar"><app-icone nome="esquerda" [tamanho]="16" /> Voltar ao catálogo</a>
+      <h1>Área do lojista</h1>
+      <p class="texto-suave">Entre para gerenciar o estoque e acompanhar os leads.</p>
+
+      <div class="demo" role="note" aria-labelledby="demo-titulo">
+        <p id="demo-titulo" class="demo__titulo"><app-icone nome="chave" [tamanho]="16" /> Acesso de demonstração</p>
+        <p>
+          E-mail: <code>{{ demo.email }}</code><br />
+          Senha: <code>{{ demo.senha }}</code>
+        </p>
+        <p class="demo__aviso">Login 100% no navegador, sem servidor nem segurança real.</p>
+        <button type="button" class="btn btn--secundario btn--pequeno" (click)="preencherDemo()">Preencher automaticamente</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="entrar()" novalidate class="form">
+        <div class="campo">
+          <label class="campo__rotulo" for="login-email">E-mail</label>
+          <input
+            id="login-email"
+            type="email"
+            class="campo__entrada"
+            formControlName="email"
+            autocomplete="username"
+            [attr.aria-invalid]="invalido('email')"
+            [attr.aria-describedby]="invalido('email') ? 'login-email-erro' : null"
+          />
+          @if (invalido('email')) {
+            <p id="login-email-erro" class="campo__erro">Informe um e-mail válido.</p>
+          }
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="login-senha">Senha</label>
+          <div class="senha">
+            <input
+              id="login-senha"
+              [type]="mostrarSenha() ? 'text' : 'password'"
+              class="campo__entrada"
+              formControlName="senha"
+              autocomplete="current-password"
+              [attr.aria-invalid]="invalido('senha')"
+              [attr.aria-describedby]="invalido('senha') ? 'login-senha-erro' : null"
+            />
+            <button
+              type="button"
+              class="senha__ver"
+              [attr.aria-pressed]="mostrarSenha()"
+              [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
+              (click)="mostrarSenha.update((v) => !v)"
+            >
+              <app-icone nome="olho" [tamanho]="18" />
+            </button>
+          </div>
+          @if (invalido('senha')) {
+            <p id="login-senha-erro" class="campo__erro">A senha tem pelo menos 6 caracteres.</p>
+          }
+        </div>
+
+        @if (erro()) {
+          <p class="campo__erro" role="alert">{{ erro() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primario btn--grande btn--bloco" [disabled]="entrando()">
+          @if (entrando()) {
+            <span class="girando" aria-hidden="true"></span> Entrando…
+          } @else {
+            Entrar no painel
+          }
+        </button>
+      </form>
+    </div>
+  </main>
+</div>

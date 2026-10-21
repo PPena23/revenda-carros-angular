@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  position: relative;
+  aspect-ratio: 640 / 340;
+  overflow: hidden;
+  line-height: 0;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+}

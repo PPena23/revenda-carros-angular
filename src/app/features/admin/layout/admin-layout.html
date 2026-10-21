@@ -1,0 +1,68 @@
+<button type="button" class="pular-conteudo" (click)="irParaConteudo()">Pular para o conteúdo</button>
+
+<aside id="menu-admin" class="lateral" [class.lateral--aberta]="menuAberto()" aria-label="Menu do painel">
+  <div class="lateral__marca">
+    <a routerLink="/admin" aria-label="Vértice Motors — painel"><app-logo rotulo="Painel" /></a>
+  </div>
+
+  <nav class="lateral__nav" aria-label="Seções do painel">
+    <ul>
+      @for (item of itens; track item.rota) {
+        <li>
+          <a [routerLink]="item.rota" routerLinkActive="ativo" ariaCurrentWhenActive="page">
+            <app-icone [nome]="item.icone" [tamanho]="20" />
+            {{ item.rotulo }}
+          </a>
+        </li>
+      }
+    </ul>
+    <hr />
+    <ul>
+      <li>
+        <a routerLink="/" target="_blank" rel="noopener">
+          <app-icone nome="olho" [tamanho]="20" /> Ver catálogo <span class="sr-only">(abre em nova aba)</span>
+        </a>
+      </li>
+      <li>
+        <button type="button" (click)="restaurar()">
+          <app-icone nome="atualizar" [tamanho]="20" /> Restaurar dados demo
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="lateral__usuario">
+    <span class="avatar" aria-hidden="true">{{ auth.usuario()?.nome?.charAt(0) }}</span>
+    <div class="lateral__dados">
+      <strong>{{ auth.usuario()?.nome }}</strong>
+      <span>{{ auth.usuario()?.cargo }}</span>
+    </div>
+    <button type="button" class="sair" aria-label="Sair do painel" (click)="auth.logout()">
+      <app-icone nome="sair" [tamanho]="20" />
+    </button>
+  </div>
+</aside>
+@if (menuAberto()) {
+  <div class="veu" aria-hidden="true" (click)="menuAberto.set(false)"></div>
+}
+
+<div class="area">
+  <header class="barra">
+    <button
+      type="button"
+      class="barra__menu"
+      aria-controls="menu-admin"
+      [attr.aria-expanded]="menuAberto()"
+      aria-label="Abrir menu"
+      (click)="menuAberto.set(true)"
+    >
+      <app-icone nome="menu" [tamanho]="22" />
+    </button>
+    <span class="barra__demo">Ambiente de demonstração · login fictício</span>
+    <app-demo-controles />
+  </header>
+
+  <main id="conteudo-admin" class="principal" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

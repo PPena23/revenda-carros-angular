@@ -1,0 +1,106 @@
+<button type="button" class="pular-conteudo" (click)="irParaConteudo()">Pular para o conteúdo</button>
+
+<header class="topo">
+  <div class="container topo__barra">
+    <a routerLink="/" class="topo__marca" aria-label="Vértice Motors — página inicial">
+      <app-logo />
+    </a>
+
+    <button
+      type="button"
+      class="topo__menu-btn"
+      [attr.aria-expanded]="menuAberto()"
+      aria-controls="menu-principal"
+      [attr.aria-label]="menuAberto() ? 'Fechar menu' : 'Abrir menu'"
+      (click)="menuAberto.update((v) => !v)"
+    >
+      <app-icone [nome]="menuAberto() ? 'fechar' : 'menu'" [tamanho]="24" />
+    </button>
+
+    <nav id="menu-principal" class="topo__nav" [class.topo__nav--aberto]="menuAberto()" aria-label="Principal">
+      <ul class="topo__links">
+        @for (link of links; track link.rota) {
+          <li>
+            <a
+              [routerLink]="link.rota"
+              routerLinkActive="ativo"
+              [routerLinkActiveOptions]="{ exact: link.exato }"
+              ariaCurrentWhenActive="page"
+              >{{ link.rotulo }}</a
+            >
+          </li>
+        }
+        <li>
+          <a routerLink="/favoritos" routerLinkActive="ativo" ariaCurrentWhenActive="page" class="com-contador">
+            <app-icone nome="coracao" [tamanho]="18" /> Favoritos
+            @if (favoritos.quantidade()) {
+              <span class="contador" [attr.aria-label]="favoritos.quantidade() + ' salvos'">{{ favoritos.quantidade() }}</span>
+            }
+          </a>
+        </li>
+        <li>
+          <a routerLink="/comparar" routerLinkActive="ativo" ariaCurrentWhenActive="page" class="com-contador">
+            <app-icone nome="comparar" [tamanho]="18" /> Comparar
+            @if (comparador.quantidade()) {
+              <span class="contador" [attr.aria-label]="comparador.quantidade() + ' selecionados'">{{ comparador.quantidade() }}</span>
+            }
+          </a>
+        </li>
+      </ul>
+      <a routerLink="/admin" class="btn btn--secundario btn--pequeno topo__lojista">
+        <app-icone nome="chave" [tamanho]="16" /> Área do lojista
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="conteudo" tabindex="-1" class="conteudo">
+  <router-outlet />
+</main>
+
+@if (comparador.quantidade() > 0) {
+  <aside class="barra-comparar" aria-label="Veículos selecionados para comparação">
+    <span><strong>{{ comparador.quantidade() }}</strong> de 3 selecionados para comparar</span>
+    <div class="barra-comparar__acoes">
+      <button type="button" class="btn btn--fantasma btn--pequeno" (click)="comparador.limpar()">Limpar</button>
+      <a routerLink="/comparar" class="btn btn--primario btn--pequeno">Comparar agora <app-icone nome="seta" [tamanho]="16" /></a>
+    </div>
+  </aside>
+}
+
+<footer class="rodape">
+  <div class="container rodape__grade">
+    <div class="rodape__marca">
+      <app-logo />
+      <p class="texto-suave">{{ loja.slogan }}. Todos os veículos revisados, com laudo cautelar e garantia de 3 meses.</p>
+    </div>
+    <div>
+      <h2 class="rodape__titulo">Visite a loja</h2>
+      <address>
+        {{ loja.endereco }}<br />
+        {{ loja.cidade }}<br />
+        {{ loja.telefone }} · {{ loja.email }}
+      </address>
+    </div>
+    <div>
+      <h2 class="rodape__titulo">Horários</h2>
+      <ul class="rodape__lista">
+        @for (h of loja.horarios; track h.dias) {
+          <li>{{ h.dias }}: {{ h.horas }}</li>
+        }
+      </ul>
+    </div>
+    <div>
+      <h2 class="rodape__titulo">Demonstração</h2>
+      <app-demo-controles />
+      <p class="rodape__aviso">
+        Projeto de portfólio. Loja, veículos, preços e contatos são <strong>fictícios</strong>; marcas citadas
+        pertencem aos seus donos e as imagens são ilustrações vetoriais.
+      </p>
+    </div>
+  </div>
+  <div class="container rodape__base">
+    <span>© {{ ano }} {{ loja.nome }} (fictícia)</span>
+    <span>Feito com Angular por <a href="https://www.linkedin.com/in/pedropena23/" target="_blank" rel="noopener">Pedro Pena</a></span>
+  </div>
+</footer>

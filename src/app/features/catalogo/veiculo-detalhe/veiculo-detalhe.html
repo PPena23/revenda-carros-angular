@@ -1,0 +1,143 @@
+<div class="container">
+  @let e = estado();
+  @if (e.status === 'carregando') {
+    <div class="carregando">
+      <app-skeleton tipo="card" [quantidade]="1" />
+      <app-skeleton tipo="linha" [quantidade]="5" />
+    </div>
+  } @else if (e.status === 'erro') {
+    <app-estado-erro titulo="Não foi possível abrir este veículo" [mensagem]="e.mensagem" (tentarNovamente)="tentarNovamente()" />
+    <p class="voltar-centro"><a routerLink="/estoque" class="btn btn--fantasma">← Voltar ao estoque</a></p>
+  } @else {
+    @let v = e.dados;
+    <nav class="trilha" aria-label="Você está em">
+      <ol>
+        <li><a routerLink="/">Início</a></li>
+        <li><a routerLink="/estoque">Estoque</a></li>
+        <li><a routerLink="/estoque" [queryParams]="{ marca: v.marca }">{{ v.marca }}</a></li>
+        <li aria-current="page">{{ v.modelo }}</li>
+      </ol>
+    </nav>
+
+    <div class="topo">
+      <div class="topo__galeria">
+        <app-galeria [veiculo]="v" />
+      </div>
+
+      <aside class="resumo" aria-labelledby="titulo-veiculo">
+        <div class="resumo__selos">
+          <app-status-badge [status]="v.status" />
+          <span class="resumo__entrada">No estoque {{ v.dataEntrada | tempoEmEstoque }}</span>
+        </div>
+        <p class="resumo__marca">{{ v.marca }}</p>
+        <h1 id="titulo-veiculo" class="resumo__titulo">{{ v.modelo }} <span>{{ v.versao }}</span></h1>
+
+        <ul class="resumo__chaves">
+          <li><app-icone nome="calendario" [tamanho]="18" /><span>{{ v.anoFabricacao }}/{{ v.anoModelo }}</span></li>
+          <li><app-icone nome="velocimetro" [tamanho]="18" /><span>{{ v.km | km }}</span></li>
+          <li><app-icone nome="cambio" [tamanho]="18" /><span>{{ v.cambio }}</span></li>
+          <li><app-icone nome="combustivel" [tamanho]="18" /><span>{{ v.combustivel }}</span></li>
+        </ul>
+
+        <div class="resumo__preco">
+          @if (v.status === 'vendido') {
+            <p class="resumo__vendido">Este veículo já foi vendido.</p>
+          } @else {
+            <p class="resumo__valor"><span class="sr-only">Preço: </span>{{ v.preco | moedaBr: 'inteiro' }}</p>
+            @if (parcelaReferencia(); as parcela) {
+              <p class="resumo__parcela">ou 48x de <strong>{{ parcela | moedaBr }}</strong> com {{ entradaReferencia }}% de entrada*</p>
+            }
+          }
+        </div>
+
+        <div class="resumo__acoes">
+          <button type="button" class="btn btn--primario btn--grande btn--bloco" (click)="irParaFormulario()">
+            Tenho interesse
+          </button>
+          <div class="resumo__secundarias">
+            <button type="button" class="btn btn--secundario" [attr.aria-pressed]="favorito()" (click)="alternarFavorito()">
+              <app-icone nome="coracao" [preenchido]="favorito()" [tamanho]="18" />
+              {{ favorito() ? 'Favoritado' : 'Favoritar' }}
+            </button>
+            <button type="button" class="btn btn--secundario" [attr.aria-pressed]="comparando()" (click)="alternarComparacao()">
+              <app-icone nome="comparar" [tamanho]="18" />
+              {{ comparando() ? 'Comparando' : 'Comparar' }}
+            </button>
+            <button type="button" class="btn btn--secundario" aria-label="Copiar link deste veículo" (click)="compartilhar()">
+              <app-icone nome="seta" [tamanho]="18" /> Link
+            </button>
+          </div>
+        </div>
+
+        <p class="resumo__loja">
+          <app-icone nome="local" [tamanho]="16" /> {{ loja.cidade }} · {{ loja.telefone }}
+        </p>
+      </aside>
+    </div>
+
+    <div class="detalhes">
+      <section aria-labelledby="ficha-titulo" class="bloco">
+        <h2 id="ficha-titulo" class="bloco__titulo">Ficha técnica</h2>
+        <table class="ficha">
+          <caption class="sr-only">Especificações do {{ v.marca }} {{ v.modelo }}</caption>
+          <tbody>
+            @for (item of especificacoes(); track item.rotulo) {
+              <tr>
+                <th scope="row">{{ item.rotulo }}</th>
+                <td>{{ item.valor }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <div class="detalhes__lado">
+        <section aria-labelledby="opcionais-titulo" class="bloco">
+          <h2 id="opcionais-titulo" class="bloco__titulo">Opcionais <span class="contagem">{{ v.opcionais.length }}</span></h2>
+          <ul class="opcionais">
+            @for (o of v.opcionais; track o) {
+              <li><app-icone nome="check" [tamanho]="14" /> {{ o }}</li>
+            } @empty {
+              <li>Sem opcionais cadastrados.</li>
+            }
+          </ul>
+        </section>
+
+        <section aria-labelledby="descricao-titulo" class="bloco">
+          <h2 id="descricao-titulo" class="bloco__titulo">Sobre este carro</h2>
+          <p class="descricao">{{ v.descricao }}</p>
+        </section>
+      </div>
+    </div>
+
+    @if (v.status !== 'vendido') {
+      <div class="bloco-largo">
+        <app-simulador [preco]="v.preco" />
+      </div>
+    }
+
+    <!-- @defer: o formulário só é baixado/renderizado quando chega perto da tela -->
+    <div id="interesse" class="bloco-largo interesse">
+      @defer (on viewport; prefetch on idle) {
+        <app-lead-form [veiculo]="v" [titulo]="'Tenho interesse no ' + v.modelo" />
+      } @placeholder {
+        <div class="interesse__placeholder" aria-hidden="true"></div>
+      } @loading (minimum 200ms) {
+        <app-skeleton tipo="linha" [quantidade]="4" />
+      }
+    </div>
+
+    @if (similares().length) {
+      <section class="bloco-largo" aria-labelledby="similares-titulo">
+        <h2 id="similares-titulo" class="bloco__titulo">Você também pode gostar</h2>
+        <ul class="similares">
+          @for (s of similares(); track s.id) {
+            <li><app-veiculo-card [veiculo]="s" /></li>
+          }
+        </ul>
+      </section>
+    }
+
+    <p class="nota">* Simulação de referência com taxa de {{ taxaReferencia | number: '1.2-2' }}% a.m. Valores e condições sujeitos a alteração. Dados fictícios.</p>
+  }
+</div>

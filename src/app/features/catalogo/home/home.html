@@ -1,0 +1,131 @@
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="container hero__grade">
+    <div class="hero__texto">
+      <p class="sobretitulo">Seminovos selecionados · Ribeirão Preto</p>
+      <h1 id="hero-titulo" class="hero__titulo">
+        Carro bom não precisa<br />
+        de <em>sorte</em>. Precisa de procedência.
+      </h1>
+      <p class="hero__lead">
+        Cada veículo do nosso showroom tem laudo cautelar, revisão em dia e preço claro. Encontre o seu em
+        poucos cliques.
+      </p>
+
+      <form class="busca" role="search" aria-label="Buscar veículos" [formGroup]="busca" (ngSubmit)="buscar()">
+        <div class="busca__campo">
+          <label for="busca-marca" class="sr-only">Marca</label>
+          <select id="busca-marca" formControlName="marca" class="busca__select">
+            <option value="">Todas as marcas</option>
+            @for (m of marcas(); track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+        <div class="busca__campo busca__campo--texto">
+          <label for="busca-modelo" class="sr-only">Modelo ou versão</label>
+          <app-icone nome="busca" [tamanho]="18" />
+          <input id="busca-modelo" type="search" formControlName="q" placeholder="Modelo, ex.: Corolla, Compass…" />
+        </div>
+        <button type="submit" class="btn btn--primario busca__btn">Buscar</button>
+      </form>
+
+      <nav class="atalhos" aria-label="Filtros rápidos">
+        @for (a of atalhos; track a.rotulo) {
+          <a class="chip" routerLink="/estoque" [queryParams]="params(a.filtro)">{{ a.rotulo }}</a>
+        }
+      </nav>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <div class="hero__halo"></div>
+      <app-car-illustration categoria="SUV" cor="#A3161D" class="hero__carro" />
+      <span class="hero__legenda">Showroom Vértice · Ilustração</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <ul class="numeros" aria-label="Destaques da loja">
+      <li><strong>+30</strong><span>carros prontos para entrega</span></li>
+      <li><strong>100%</strong><span>com laudo cautelar</span></li>
+      <li><strong>60x</strong><span>financiamento facilitado</span></li>
+      <li><strong>3 meses</strong><span>de garantia de motor e câmbio</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="secao container" aria-labelledby="destaques-titulo">
+  <header class="secao__topo">
+    <div>
+      <p class="sobretitulo">Escolhidos a dedo</p>
+      <h2 id="destaques-titulo" class="secao__titulo">Destaques da semana</h2>
+    </div>
+    <a routerLink="/estoque" class="link-seta">Ver estoque completo <app-icone nome="seta" [tamanho]="18" /></a>
+  </header>
+
+  @let d = destaques();
+  @if (d.status === 'carregando') {
+    <app-skeleton tipo="card" [quantidade]="6" />
+  } @else if (d.status === 'erro') {
+    <app-estado-erro
+      titulo="Não foi possível carregar os destaques"
+      [mensagem]="d.mensagem"
+      (tentarNovamente)="tentarNovamente()"
+    />
+  } @else if (d.dados.length) {
+    <ul class="grade-veiculos">
+      @for (v of d.dados; track v.id; let i = $index) {
+        <li [appRevelar]="i * 70"><app-veiculo-card [veiculo]="v" /></li>
+      }
+    </ul>
+  } @else {
+    <app-estado-vazio titulo="Nenhum destaque no momento" texto="Confira todo o estoque disponível.">
+      <a routerLink="/estoque" class="btn btn--secundario">Ver estoque</a>
+    </app-estado-vazio>
+  }
+</section>
+
+<section class="secao container" aria-labelledby="categorias-titulo">
+  <header class="secao__topo">
+    <div>
+      <p class="sobretitulo">Encontre pelo estilo</p>
+      <h2 id="categorias-titulo" class="secao__titulo">Qual carroceria combina com você?</h2>
+    </div>
+  </header>
+  <ul class="categorias">
+    @for (c of categorias; track c.nome; let i = $index) {
+      <li [appRevelar]="i * 80">
+        <a class="categoria" routerLink="/estoque" [queryParams]="{ categoria: c.nome }">
+          <app-car-illustration [categoria]="c.nome" [cor]="c.cor" [rotulo]="'Ilustração de ' + c.nome" />
+          <span class="categoria__info">
+            <strong>{{ c.nome }}</strong>
+            <span>{{ c.descricao }}</span>
+          </span>
+          <app-icone nome="seta" class="categoria__seta" />
+        </a>
+      </li>
+    }
+  </ul>
+</section>
+
+<section class="secao container" aria-labelledby="diferenciais-titulo">
+  <h2 id="diferenciais-titulo" class="sr-only">Por que comprar na Vértice</h2>
+  <ul class="diferenciais">
+    @for (d of diferenciais; track d.titulo; let i = $index) {
+      <li class="diferencial" [appRevelar]="i * 90">
+        <span class="diferencial__icone"><app-icone [nome]="d.icone" [tamanho]="22" /></span>
+        <h3>{{ d.titulo }}</h3>
+        <p>{{ d.texto }}</p>
+      </li>
+    }
+  </ul>
+</section>
+
+<section class="container" aria-labelledby="cta-titulo">
+  <div class="cta" appRevelar>
+    <div>
+      <h2 id="cta-titulo">Quer vender ou trocar seu carro?</h2>
+      <p>Faça uma avaliação sem compromisso. Respondemos em até 1 hora no horário comercial.</p>
+    </div>
+    <a routerLink="/contato" class="btn btn--primario btn--grande">Falar com um consultor</a>
+  </div>
+</section>

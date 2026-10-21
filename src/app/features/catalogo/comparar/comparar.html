@@ -1,0 +1,59 @@
+<div class="container pagina">
+  <header class="pagina__topo">
+    <p class="sobretitulo">Lado a lado</p>
+    <h1>Comparar veículos</h1>
+    <p class="texto-suave">Selecione até 3 carros no estoque. O melhor valor de cada critério aparece em destaque.</p>
+  </header>
+
+  @let e = estado();
+  @if (e.status === 'carregando') {
+    <app-skeleton tipo="linha" [quantidade]="6" />
+  } @else if (e.status === 'erro') {
+    <app-estado-erro [mensagem]="e.mensagem" (tentarNovamente)="recarregar$.next()" />
+  } @else if (selecionados().length === 0) {
+    <app-estado-vazio icone="comparar" titulo="Nenhum carro selecionado" texto="Use o botão de comparar nos cards do estoque.">
+      <a routerLink="/estoque" class="btn btn--primario">Escolher no estoque</a>
+    </app-estado-vazio>
+  } @else {
+    <div class="rolagem" role="region" aria-label="Tabela de comparação" tabindex="0">
+      <table class="tabela" [style.--colunas]="selecionados().length">
+        <caption class="sr-only">Comparação de {{ selecionados().length }} veículos</caption>
+        <thead>
+          <tr>
+            <td class="tabela__vazio"></td>
+            @for (v of selecionados(); track v.id) {
+              <th scope="col" class="tabela__carro">
+                <app-car-illustration [categoria]="v.categoria" [cor]="v.corHex" [rotulo]="v.marca + ' ' + v.modelo" />
+                <a [routerLink]="['/veiculo', v.id]" class="tabela__nome">
+                  {{ v.marca }} {{ v.modelo }}
+                  <span>{{ v.versao }}</span>
+                </a>
+                <button type="button" class="btn btn--fantasma btn--pequeno" (click)="comparador.remover(v.id)">
+                  <app-icone nome="fechar" [tamanho]="14" /> Remover
+                </button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (linha of linhas; track linha.rotulo; let i = $index) {
+            <tr>
+              <th scope="row">{{ linha.rotulo }}</th>
+              @for (v of selecionados(); track v.id) {
+                <td [class.melhor]="vencedores()[i] === v.id">
+                  {{ linha.valor(v) }}
+                  @if (vencedores()[i] === v.id) {
+                    <span class="melhor__selo"><app-icone nome="check" [tamanho]="12" /> melhor</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!comparador.cheio()) {
+      <p class="adicionar"><a routerLink="/estoque" class="btn btn--secundario"><app-icone nome="mais" [tamanho]="16" /> Adicionar outro carro</a></p>
+    }
+  }
+</div>
